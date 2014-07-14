@@ -4,6 +4,7 @@ add_llvm_library(LLVMObfuscation
   PrngAESCtr.cpp
   Substitution.cpp
   SubstitutionFunction.cpp
+  StringObfuscation.cpp
   BogusControlFlow.cpp
   )
 

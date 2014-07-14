@@ -26,6 +26,7 @@
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Vectorize.h"
 #include "llvm/Transforms/Obfuscation/Substitution.h"
+#include "llvm/Transforms/Obfuscation/StringObfuscation.h"
 #include "llvm/Transforms/Obfuscation/Flattening.h"
 #include "llvm/Transforms/Obfuscation/BogusControlFlow.h"
 #include "llvm/PrngAESCtr.h"
@@ -72,6 +73,9 @@ BogusControlFlow("bcf",cl::init(false),cl::desc("Enable bogus control flow"));
 
 static cl::opt<bool>
 Substitution("sub",cl::init(false),cl::desc("Enable instruction substitutions"));
+
+static cl::opt<bool>
+StringObfuscation("xse",cl::init(false),cl::desc("Enable string encryptions"));
 
 static cl::opt<std::string>
 AesSeed("aesSeed",cl::init(""),cl::desc("seed for the AES-CTR PRNG"));
@@ -139,9 +143,12 @@ PassManagerBuilder::addInitialAliasAnalysisPasses(PassManagerBase &PM) const {
 void PassManagerBuilder::populateFunctionPassManager(FunctionPassManager &FPM) {
   addExtensionsToPM(EP_EarlyAsPossible, FPM);
 
+  // String Obfuscation
+  if(StringObfuscation) FPM.add(createStringObfuscation());
+
   // Bogus control flow
   if(BogusControlFlow) FPM.add(createBogus());
-  
+
   // Flattening
   //
   // Although a function pass, we call it at the very latest moment since it
@@ -150,6 +157,7 @@ void PassManagerBuilder::populateFunctionPassManager(FunctionPassManager &FPM) {
     FPM.add(createLowerSwitchPass());
     FPM.add(createFlattening());
   }
+
 
 
   // Add LibraryInfo if we have some.
